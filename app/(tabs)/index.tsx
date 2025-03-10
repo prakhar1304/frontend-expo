@@ -1,74 +1,257 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Image } from 'react-native';
+import { Upload, Camera, Mail, Cloud } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function HomeScreen() {
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleCamera = async () => {
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera permissions to make this work!');
+        return;
+      }
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      console.log(result.assets[0]);
+      setModalVisible(false);
+    }
+  };
+
+  const handleFilePicker = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+      });
+
+      if (result.assets) {
+        console.log(result.assets[0]);
+        setModalVisible(false);
+      }
+    } catch (err) {
+      console.log('DocumentPicker Error:', err);
+    }
+  };
+
+  const UPLOAD_OPTIONS = [
+    {
+      id: 'device',
+      title: 'Upload',
+      subtitle: 'from device',
+      icon: (props) => <Cloud {...props} />,
+      onPress: handleFilePicker,
+    },
+    {
+      id: 'camera',
+      title: 'Take',
+      subtitle: 'a photo',
+      icon: (props) => <Camera {...props} />,
+      onPress: handleCamera,
+    },
+    {
+      id: 'whatsapp',
+      title: 'Upload',
+      subtitle: 'with whatsapp',
+      icon: (props) => <Upload {...props} />,
+      onPress: handleFilePicker,
+    },
+    {
+      id: 'mail',
+      title: 'Upload',
+      subtitle: 'from mail',
+      icon: (props) => <Mail {...props} />,
+      onPress: handleFilePicker,
+    },
+  ];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Health Care Docs</Text>
+      </View>
+
+      <View style={styles.content}>
+        <Text style={styles.welcomeText}>Hi, Welcome to your</Text>
+        <Text style={styles.healthText}>Health Care Docs</Text>
+
+        <TouchableOpacity
+          style={styles.uploadButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?q=80&w=500&auto=format&fit=crop' }}
+            style={styles.uploadImage}
+          />
+          <Text style={styles.uploadText}>UPLOAD</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Upload Photo/Video</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.optionsGrid}>
+              {UPLOAD_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={styles.optionCard}
+                  onPress={option.onPress}
+                >
+                  <View style={styles.iconContainer}>
+                    {option.icon({ size: 24, color: '#fff', strokeWidth: 2 })}
+                  </View>
+                  <Text style={styles.optionTitle}>{option.title}</Text>
+                  <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    backgroundColor: '#2F7FF2',
+    padding: 20,
+    paddingTop: 60,
+  },
+  headerText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  content: {
+    flex: 1,
+    padding: 20,
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  welcomeText: {
+    fontSize: 24,
+    marginTop: 40,
+    color: '#000',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  healthText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#2F7FF2',
+    marginTop: 8,
+  },
+  uploadButton: {
+    marginTop: 60,
+    alignItems: 'center',
+  },
+  uploadImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 20,
+    marginBottom: 20,
+  },
+  uploadText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2F7FF2',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    // borderTopLeftRadius: 20,
+    // borderTopRightRadius: 20,
+    padding: 20,
+    minHeight: '50%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  optionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  optionCard: {
+    width: '47%',
+    backgroundColor: '#f8f8f8',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    aspectRatio: 1,
+  },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#2F7FF2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  optionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+  },
+  optionSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 4,
   },
 });
