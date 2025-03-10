@@ -1,17 +1,55 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Image, Alert } from 'react-native';
 import { Upload, Camera, Mail, Cloud } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import axios from 'axios'; // Make sure to install axios: npm install axios
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const API_URL = 'http://192.168.29.150:8000/api/v1'; 
+
+  // Function to upload file to server
+  const uploadToServer = async (fileUri, fileType, fileName) => {
+    try {
+      setIsUploading(true);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('file', {
+        uri: fileUri,
+        type: fileType,
+        name: fileName || 'upload.jpg',
+      } as any);
+      
+      // Make API request
+      const response = await axios.post(`${API_URL}/file/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      console.log('Upload successful:', response.data);
+      Alert.alert('Success', 'File uploaded successfully!');
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      Alert.alert('Error', 'Failed to upload file. Please try again.');
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleCamera = async () => {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        alert('Sorry, we need camera permissions to make this work!');
+        Alert.alert('Permission Denied', 'Sorry, we need camera permissions to make this work!');
         return;
       }
     }
@@ -23,9 +61,14 @@ export default function HomeScreen() {
       quality: 1,
     });
 
-    if (!result.canceled) {
-      console.log(result.assets[0]);
-      setModalVisible(false);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      try {
+        await uploadToServer(asset.uri, asset.mimeType || 'image/jpeg', `camera_${Date.now()}.jpg`);
+        setModalVisible(false);
+      } catch (error) {
+        console.error('Upload failed after camera capture', error);
+      }
     }
   };
 
@@ -35,12 +78,29 @@ export default function HomeScreen() {
         type: ['image/*', 'application/pdf'],
       });
 
-      if (result.assets) {
-        console.log(result.assets[0]);
-        setModalVisible(false);
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        try {
+          await uploadToServer(asset.uri, asset.mimeType, asset.name);
+          setModalVisible(false);
+        } catch (error) {
+          console.error('Upload failed after document pick', error);
+        }
       }
     } catch (err) {
       console.log('DocumentPicker Error:', err);
+      Alert.alert('Error', 'Failed to pick document');
+    }
+  };
+
+  const fetchReports = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/reports`);
+      console.log('Reports fetched:', response.data);
+      // You can use this data to display reports in your app
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      Alert.alert('Error', 'Failed to fetch reports');
     }
   };
 
@@ -88,12 +148,22 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.uploadButton}
           onPress={() => setModalVisible(true)}
+          disabled={isUploading}
         >
           <Image
             source={{ uri: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?q=80&w=500&auto=format&fit=crop' }}
             style={styles.uploadImage}
           />
-          <Text style={styles.uploadText}>UPLOAD</Text>
+          <Text style={styles.uploadText}>
+            {isUploading ? 'UPLOADING...' : 'UPLOAD'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.viewReportsButton}
+          onPress={fetchReports}
+        >
+          <Text style={styles.viewReportsText}>VIEW REPORTS</Text>
         </TouchableOpacity>
       </View>
 
@@ -121,6 +191,7 @@ export default function HomeScreen() {
                   key={option.id}
                   style={styles.optionCard}
                   onPress={option.onPress}
+                  disabled={isUploading}
                 >
                   <View style={styles.iconContainer}>
                     {option.icon({ size: 24, color: '#fff', strokeWidth: 2 })}
@@ -183,15 +254,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2F7FF2',
   },
+  viewReportsButton: {
+    marginTop: 30,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#2F7FF2',
+    borderRadius: 10,
+  },
+  viewReportsText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#fff',
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 20,
     minHeight: '50%',
   },

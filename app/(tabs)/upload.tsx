@@ -1,146 +1,162 @@
-import React from "react";
-import { View, Text, ScrollView, Image, StyleSheet } from "react-native";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from 'react-native';
+import axios from 'axios';
+import Constants from 'expo-constants';
 
+// Get the API URL from environment variables or use a default for development
+const API_URL =  'http://192.168.29.150:8000';
 
-const reportData = [
-  {
-    title: "MRI : Brain",
-    type: "Imaging",
-    doctor: "Dr. Surabhi Anand",
-    date: "2025-12-05",
-    image: "https://example.com/mri-scan.jpg",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    additionalDetails: {
-      "Clinical History": "The patient presented with occasional headaches and dizziness",
-      "Findings": "This MRI of the brain reveals no significant abnormalities or pathologies."
-    }
-  },
-  {
-    title: "Thyroid Profile",
-    type: "Labs",
-    doctor: "Dr. Surabhi Anand",
-    date: "2025-11-25",
-    image: "https://example.com/labs-report.jpg",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    additionalDetails: {
-      "Basophils": "0 10^3/uL",
-      "BUN/Creatinine Blood": "29",
-      "Calcium (Blood)": "8.5 - 12.0 mg/dL"
-    }
-  },
-  {
-    title: "Prescription",
-    type: "Outpatient",
-    doctor: "Dr. Surabhi Anand",
-    date: "2025-11-15",
-    image: "https://example.com/prescription.jpg",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    additionalDetails: {
-      "Assessment": "Lorem ipsum dolor sit amet",
-      "Problem List": [
-        "Atrial fibrillation",
-        "Chest pain",
-        "Diverticulosis of colon",
-        "Partial colectomy"
-      ]
-    }
-  },
-  {
-    title: "HFE Analysis",
-    type: "Genetic Testing",
-    doctor: "Dr. Surabhi Anand",
-    date: "2025-09-15",
-    image: "https://example.com/genetic-test.jpg",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    additionalDetails: {
-      "Methodology": "Normal biventricular size and systolic function with an ejection fraction of 60–65%.",
-      "Interpretation": "Atrial fibrillation, chest pain, hypertensive heart disease and aneurysm of aortic root"
-    }
-  },
-  {
-    title: "Pathology : Colon",
-    type: "Pathology",
-    doctor: "Dr. Surabhi Anand",
-    date: "2025-09-05",
-    image: "https://example.com/pathology.jpg",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    additionalDetails: {
-      "Diagnosis": "Descending colon, polypectomy: Colonic mucosa with benign lymphoid aggregate",
-      "Findings": "Lorem ipsum dolor sit amet"
-    }
-  },
-  {
-    title: "Echocardiogram",
-    type: "Procedure",
-    doctor: "Dr. Surabhi Anand",
-    date: "2025-06-15",
-    image: "https://example.com/echo.jpg",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    additionalDetails: {
-      "Summary": "Normal biventricular size and systolic function with ejection fraction of 60–65%",
-      "Note": "No abnormal valvular structures"
-    }
-  },
-  {
-    title: "Discharge Summary",
-    type: "Hospitalization",
-    doctor: "Dr. Surabhi Anand",
-    date: "2025-01-05",
-    image: "https://example.com/discharge.jpg",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    additionalDetails: {
-      "Chief Complaint": "A 56-year-old man who 6 months ago had colon resection for diverticulitis, colostomy, and Hartmann pouch.",
-      "Summary": "Patient now admitted for reversal of his colostomy."
-    }
-  }
-];
+export default function ReportsScreen() {
+  const [loading, setLoading] = useState(false);
+  const [reports, setReports] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
+  const fetchReports = async () => {
+    setLoading(true);
+    setError(null);
 
-const Yo = () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/v1/file/reports`, {
+        // Add any necessary headers here
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        // Add timeout to prevent infinite loading
+        timeout: 10000,
+      });
+
+      setReports(Array.isArray(response.data) ? response.data : [response.data]);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        // Handle specific error cases
+        if (err.code === 'ECONNABORTED') {
+          setError('Request timed out. Please try again.');
+        } else if (!err.response) {
+          setError('Network error. Please check your connection.');
+        } else {
+          setError(`Error: ${err.response.status} - ${err.response.data?.message || 'Something went wrong'}`)
+        }
+      } else {
+        setError('An unexpected error occurred');
+      }
+      console.error('Error fetching reports:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      {reportData.map((report, index) => (
-        <View key={index} style={styles.card}>
-          <Text style={styles.date}>{new Date(report.date).toDateString()}</Text>
-          <Text style={styles.title}>{report.title}</Text>
-          <Text style={styles.type}>Type: {report.type}</Text>
-          <Text style={styles.doctor}>Doctor: {report.doctor}</Text>
-          <Text style={styles.description}>{report.description}</Text>
-          <Image source={{ uri: report.image }} style={styles.image} />
-          <View style={styles.detailsContainer}>
-            {Object.entries(report.additionalDetails).map(([key, value], idx) => (
-              <Text key={idx} style={styles.detailText}>
-                <Text style={styles.detailKey}>{key}:</Text>{" "}
-                {Array.isArray(value)
-                  ? value.map((item, i) => `\n  • ${item}`).join("")
-                  : String(value)}
-              </Text>
-            ))}
-          </View>
+    <View style={styles.container}>
+      <Text style={styles.header}>Reports</Text>
+
+      <TouchableOpacity
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={fetchReports}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Fetch Reports</Text>
+        )}
+      </TouchableOpacity>
+
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
-      ))}
-    </ScrollView>
+      )}
+
+      <View style={styles.resultContainer}>
+        <Text style={styles.resultHeader}>
+          {reports.length > 0 ? `Reports (${reports.length})` : 'No reports available'}
+        </Text>
+
+        <ScrollView style={styles.reportsScroll}>
+          {reports.map((report, index) => (
+            <View key={index} style={styles.reportItem}>
+              <Text style={styles.reportText}>
+                {JSON.stringify(report, null, 2)}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 3
+  container: {
+    flex: 1,
+    padding: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    backgroundColor: '#f5f5f5',
   },
-  date: { fontSize: 12, color: "#888", marginBottom: 4 },
-  title: { fontSize: 18, fontWeight: "bold", marginBottom: 4 },
-  type: { fontSize: 14, fontWeight: "600", marginBottom: 2 },
-  doctor: { fontSize: 14, marginBottom: 4 },
-  description: { fontSize: 14, fontStyle: "italic", marginBottom: 6 },
-  image: { height: 120, borderRadius: 8, marginBottom: 10 },
-  detailsContainer: { marginTop: 8 },
-  detailText: { fontSize: 14, marginBottom: 4 },
-  detailKey: { fontWeight: "bold" }
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#1a1a1a',
+  },
+  button: {
+    backgroundColor: '#2563eb',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorContainer: {
+    backgroundColor: '#fee2e2',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+  },
+  resultContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  resultHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#1a1a1a',
+  },
+  reportsScroll: {
+    flex: 1,
+  },
+  reportItem: {
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  reportText: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 12,
+    color: '#334155',
+  },
 });
-
-export default Yo;
