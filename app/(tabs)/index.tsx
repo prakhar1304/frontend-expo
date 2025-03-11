@@ -10,15 +10,24 @@ import {
   Platform,
   Image,
   Alert,
+  StatusBar,
 } from "react-native";
 import { Upload, Camera } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
+import { scale } from "react-native-size-matters";
+import { useRouter } from "expo-router";
+import LoadingModal from "@/app/(loading)/loading";
+
+
+
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  const router = useRouter();
 
   const API_URL = "http://192.168.29.150:8000/api/v1";
 
@@ -26,6 +35,7 @@ export default function HomeScreen() {
   const uploadToServer = async (fileUri, fileType, fileName) => {
     try {
       setIsUploading(true);
+      setModalVisible(false);
 
       // Create form data
       const formData = new FormData();
@@ -42,16 +52,22 @@ export default function HomeScreen() {
         },
       });
 
-      console.log("Upload successful:", response.data);
-      Alert.alert("Success", "File uploaded successfully!");
+      // console.log("Upload successful:", response.data);
+      // Alert.alert("Success", "File uploaded successfully!");
 
-      return response.data;
+      router.navigate("/records")
+      // return response.data;
+
+
+      
     } catch (error) {
       console.error("Error uploading file:", error);
       Alert.alert("Error", "Failed to upload file. Please try again.");
       throw error;
     } finally {
       setIsUploading(false);
+      
+      
     }
   };
 
@@ -129,11 +145,11 @@ export default function HomeScreen() {
         height: size,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor:"transparent"
+        backgroundColor: "transparent"
       }}
     >
       <Image
-      source={require('../../assets/images/Whatsapp.png')}
+        source={require('../../assets/images/Whatsapp.png')}
       />
     </View>
   );
@@ -146,11 +162,11 @@ export default function HomeScreen() {
         height: size,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor:"transparent"
+        backgroundColor: "transparent"
       }}
     >
-     <Image
-      source={require('../../assets/images/Mail.png')}
+      <Image
+        source={require('../../assets/images/Mail.png')}
       />
     </View>
   );
@@ -188,36 +204,36 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <LoadingModal visible={isUploading} message="Uploading..." />
+    <StatusBar barStyle="dark-content"  />
       <View style={styles.header}>
         <Text style={styles.headerText}>Health Care Docs</Text>
       </View>
 
       <View style={styles.content}>
         <Text style={styles.welcomeText}>Hi, Welcome to your</Text>
-        <Text style={styles.healthText}>Health Care Docs</Text>
+        <Text style={styles.healthText}>Health History</Text>
+        {/* <Text style={{alignSelf:"center"}}>Organize your medical records effortlessly with our timeline, ensuring you never worry about them again. Streamline your health journey with ease.</Text> */}
 
+
+        <View style={styles.wraperUpload}>
+
+       
         <TouchableOpacity
           style={styles.uploadButton}
           onPress={() => setModalVisible(true)}
           disabled={isUploading}
         >
           <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?q=80&w=500&auto=format&fit=crop",
-            }}
+            source={require("../../assets/images/upload.png")}
             style={styles.uploadImage}
           />
           <Text style={styles.uploadText}>
             {isUploading ? "UPLOADING..." : "UPLOAD"}
           </Text>
         </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={styles.viewReportsButton}
-          onPress={fetchReports}
-        >
-          <Text style={styles.viewReportsText}>VIEW REPORTS</Text>
-        </TouchableOpacity>
       </View>
 
       <Modal
@@ -238,20 +254,13 @@ export default function HomeScreen() {
                 >
                   <Text style={styles.optionTitle}>{option.title}</Text>
                   <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
-                  <View style = {[{backgroundColor: "rgba(163, 152, 152, 0.96)",    width: 65,
-    height: 65,
-    borderRadius: 35,
-    // backgroundColor: "#2F7FF2",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-    marginTop: 40,
-    borderColor:"#fff",
-    borderWidth:2,
-    }]}>
-                  <View style={styles.iconContainer}>
+                  <View style={[
+                    styles.iconWrapper,
+                    option.id === "whatsapp" || option.id === "mail" 
+                      ? { backgroundColor: "rgba(163, 152, 152, 0.96)" } 
+                      : { backgroundColor: "rgba(163, 152, 152, 0.96)" }
+                  ]}>
                     {option.icon({ size: 24, color: "#fff", strokeWidth: 2 })}
-                  </View>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -271,63 +280,91 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    backgroundColor: "#2F7FF2",
-    padding: 20,
-    paddingTop: 60,
-  },
-  headerText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    alignItems: "center",
-  },
-  welcomeText: {
-    fontSize: 24,
-    marginTop: 40,
-    color: "#000",
-  },
-  healthText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#2F7FF2",
-    marginTop: 8,
-  },
-  uploadButton: {
-    marginTop: 60,
-    alignItems: "center",
-  },
-  uploadImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  uploadText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#2F7FF2",
-  },
-  viewReportsButton: {
-    marginTop: 30,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: "#2F7FF2",
-    borderRadius: 10,
-  },
-  viewReportsText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#fff",
-  },
+// Updated styles for the main view
+container: {
+  flex: 1,
+  backgroundColor: "#FFFFFF",
+},
+header: {
+  backgroundColor: "#FFFFFF",
+  padding: 20,
+  paddingTop: 60,
+  borderBottomWidth: 1,
+  borderBottomColor: "#EEEEEE",
+  shadowColor: "#000000",
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.05,
+  shadowRadius: 2,
+  elevation: 2,
+},
+wraperUpload:{
+  borderColor: "#BAD4FC",
+  borderWidth: 2.5,
+  borderStyle: "dashed",
+  padding:20,
+  width: scale(300),
+},
+headerText: {
+  color: "#000000",
+  fontSize: 22,
+  fontWeight: "bold",
+},
+content: {
+  flex: 1,
+  padding: 24,
+  alignItems: "center",
+ 
+},
+welcomeText: {
+  fontSize: 20,
+  marginTop: 40,
+  color: "#000000",
+  fontWeight: "500",
+},
+healthText: {
+  fontSize: 32,
+  fontWeight: "bold",
+  color: "#2F7FF2",
+  marginTop: 8,
+  marginBottom: 20,
+},
+uploadButton: {
+  marginTop: 30,
+  alignItems: "center",
+},
+uploadImage: {
+  width: 220,
+  height: 220,
+  borderRadius: 16,
+  marginBottom: 24,
+  borderWidth: 1,
+  borderColor: "#EEEEEE",
+},
+uploadText: {
+  fontSize: 18,
+  fontWeight: "bold",
+  color: "#2F7FF2",
+  letterSpacing: 0.5,
+},
+viewReportsButton: {
+  marginTop: 40,
+  paddingVertical: 16,
+  paddingHorizontal: 32,
+  backgroundColor: "#000000",
+  borderRadius: 12,
+  width: "80%",
+  alignItems: "center",
+},
+viewReportsText: {
+  fontSize: 16,
+  fontWeight: "bold",
+  color: "#FFFFFF",
+  letterSpacing: 0.5,
+},
+
+
+
+  //model
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.7)",
@@ -358,21 +395,23 @@ const styles = StyleSheet.create({
     height: 200,
     paddingLeft: 25,
   },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#2F7FF2",
+  iconWrapper: {
+    width: 65,
+    height: 65,
+    borderRadius: 35,
     alignItems: "center",
     justifyContent: "center",
- 
+    marginBottom: 12,
+    marginTop: 40,
+    borderColor: "#fff",
+    borderWidth: 2,
   },
   optionTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: "#fff",
     textAlign: "center",
-    marginTop:10,
+    marginTop: 10,
   },
   optionSubtitle: {
     fontSize: 14,
@@ -398,3 +437,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+function useRoute() {
+  throw new Error("Function not implemented.");
+}

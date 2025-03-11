@@ -1,11 +1,13 @@
 import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native"
 import { Feather, FontAwesome5 } from "@expo/vector-icons"
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const Header = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.qrButton}>
-        <FontAwesome5 name="qrcode" size={24} color="#333" />
+   
+        <MaterialIcons name="qr-code-scanner" size={29} color="#333" />
       </TouchableOpacity>
 
       <View style={styles.searchContainer}>
@@ -27,8 +29,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 1,
     paddingHorizontal: 4,
+    marginTop:15
   },
   qrButton: {
     padding: 8,
@@ -37,8 +40,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 30,
+    backgroundColor: "rgb(255, 255, 255)",
+    borderRadius: 10,
     marginHorizontal: 12,
     paddingHorizontal: 16,
     height: 46,

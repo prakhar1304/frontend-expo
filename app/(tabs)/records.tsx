@@ -3,10 +3,10 @@ import RecordsScreen from "@/components/RecordScreen"
 import { View, StyleSheet, SafeAreaView, StatusBar } from "react-native"
 
 
-const New = () => {
+const Records = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content"  />
       <View style={styles.content}>
         <Header />
         <RecordsScreen />
@@ -24,9 +24,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     marginTop: 30,
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
   },
 })
 
-export default New
+export default Records
 

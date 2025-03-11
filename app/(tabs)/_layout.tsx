@@ -19,7 +19,7 @@ export default function TabLayout() {
     // tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
     headerShown: false,
     tabBarButton: HapticTab,
-    tabBarBackground: TabBarBackground,
+    // tabBarBackground: TabBarBackground,
     tabBarStyle: {
       backgroundColor: '#fff',
  
@@ -59,7 +59,7 @@ export default function TabLayout() {
     }}
   />
   <Tabs.Screen
-    name="new"
+    name="records"
     options={{
       title: 'Records',
       tabBarIcon: ({ color }) => (

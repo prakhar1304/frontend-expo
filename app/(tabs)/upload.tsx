@@ -29,6 +29,7 @@ export default function ReportsScreen() {
       setReports(Array.isArray(response.data) ? response.data : [response.data]);
 
       console.log('Reports fetched:', reports);
+      
     } catch (err) {
       if (axios.isAxiosError(err)) {
         // Handle specific error cases
