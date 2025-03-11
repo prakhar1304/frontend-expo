@@ -40,15 +40,7 @@ export default function TabLayout() {
     },
   }}>
  
-  <Tabs.Screen
-    name="upload"
-    options={{
-      title: 'Upload',
-      tabBarIcon: ({ color }) => (
-        <AntDesign name="appstore-o" size={24} color={color} />
-      ),
-    }}
-  />
+
    <Tabs.Screen
     name="index"
     options={{
