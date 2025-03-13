@@ -19,6 +19,7 @@ import axios from "axios";
 import { scale } from "react-native-size-matters";
 import { useRouter } from "expo-router";
 import LoadingModal from "@/app/(loading)/loading";
+import Constants from "expo-constants";
 
 
 
@@ -29,7 +30,8 @@ export default function HomeScreen() {
 
   const router = useRouter();
 
-  const API_URL = "http://192.168.29.150:8000/api/v1";
+  // const API_URL = "https://57e4-49-47-9-136.ngrok-free.app/api/v1";
+  const API_URL =  Constants.expoConfig?.extra?.API_URL || process.env.EXPO_PUBLIC_API_URL || "https://57e4-49-47-9-136.ngrok-free.app/api/v1";
 
   // Function to upload file to server
   const uploadToServer = async (fileUri, fileType, fileName) => {
@@ -126,16 +128,7 @@ export default function HomeScreen() {
     }
   };
 
-  const fetchReports = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/reports`);
-      console.log("Reports fetched:", response.data);
-      // You can use this data to display reports in your app
-    } catch (error) {
-      console.error("Error fetching reports:", error);
-      Alert.alert("Error", "Failed to fetch reports");
-    }
-  };
+ 
 
   // Custom WhatsApp icon component
   const WhatsAppIcon = ({ size, color }) => (
@@ -213,6 +206,8 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <Text style={styles.welcomeText}>Hi, Welcome to your</Text>
         <Text style={styles.healthText}>Health History</Text>
+
+        {/* {API_URL ? <Text style = {{fontSize :10 , color:"blue"}}>{API_URL}</Text> : <></>} */}
         {/* <Text style={{alignSelf:"center"}}>Organize your medical records effortlessly with our timeline, ensuring you never worry about them again. Streamline your health journey with ease.</Text> */}
 
 
@@ -225,7 +220,7 @@ export default function HomeScreen() {
           disabled={isUploading}
         >
           <Image
-            source={require("../../assets/images/upload.png")}
+            source={{uri: "https://res.cloudinary.com/dwbdtvo3s/image/upload/fl_preserve_transparency/v1741719220/upload_naits2.jpg?_s=public-apps"}}
             style={styles.uploadImage}
           />
           <Text style={styles.uploadText}>

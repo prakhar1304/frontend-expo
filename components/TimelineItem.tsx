@@ -1,6 +1,8 @@
 import type React from "react"
 import { View, Text, StyleSheet } from "react-native"
-import { Svg, Line } from "react-native-svg"
+
+import Svg, { Line } from 'react-native-svg';
+
 
 interface TimelineItemProps {
   date: string

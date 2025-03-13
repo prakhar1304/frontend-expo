@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">= 15.0.14",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "environment": "development",
+      "channel": "development",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://57e4-49-47-9-136.ngrok-free.app/api/v1"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "environment": "preview",
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://57e4-49-47-9-136.ngrok-free.app/api/v1"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "environment": "production",
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://57e4-49-47-9-136.ngrok-free.app/api/v1"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

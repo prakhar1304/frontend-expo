@@ -72,7 +72,7 @@ const RecordCard = ({ report }: RecordCardProps) => {
           <Image
             source={{ uri: report.image }}
             style={styles.image}
-            defaultSource={require("../assets/images/Mail.png")}
+       
             resizeMode="cover"
           />
           <TouchableOpacity style={styles.viewReportButton}  
@@ -116,7 +116,8 @@ const styles = StyleSheet.create({
     marginLeft: moderateScale(-25),
     marginTop: moderateScale(30),
     zIndex: 2,
-    marginRight: moderateScale(16)
+    marginRight: moderateScale(16),
+    overflow: "hidden",
   },
   header: {
     flexDirection: "row",
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(12),
   },
   title: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(14),
     fontWeight: "bold",
     color: "#333",
   },

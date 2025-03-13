@@ -15,8 +15,15 @@ import axios from "axios";
 import Header from "./Header";
 import LoadingModal from "@/app/(loading)/loading";
 import { useFocusEffect } from "expo-router";
+import Constants from "expo-constants";
 
-const API_URL = "http://192.168.29.150:8000";
+// const API_URL = Constants.manifest?.extra?.API_URL || Constants.expoConfig?.extra?.API_URL || "https://57e4-49-47-9-136.ngrok-free.app/api/v1";
+
+
+const API_URL =
+  Constants.expoConfig?.extra?.API_URL ||
+  process.env.EXPO_PUBLIC_API_URL ||
+  "https://57e4-49-47-9-136.ngrok-free.app/api/v1";
 
 const RecordsScreen = () => {
   const [reports, setReports] = useState<any[]>([]);
@@ -24,23 +31,32 @@ const RecordsScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    // console.log("API URLl-----------:", API_URL);
+    console.log(`${API_URL}/file/reports`);
+  }, []);
+
+  
   const fetchReports = async () => {
     try {
       setLoading(true);
       console.log("fetching reports");
-      const response = await axios.get(`${API_URL}/api/v1/file/reports`, {
+      const response = await axios.get(`${API_URL}/file/reports`, {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
         timeout: 10000,
       });
-
-      const reportsData = Array.isArray(response.data.data)
+      
+     
+       const reportsData = Array.isArray(response.data.data)
         ? response.data.data
         : [response.data.data];
       setReports(reportsData);
-      // console.log("reports", reports[0]);
+      console.log("reportsData after parsing:", JSON.stringify(reportsData, null, 2));
+
+      
     } catch (err: any) {
       setError("Failed to fetch reports");
       console.error(err);
@@ -52,8 +68,18 @@ const RecordsScreen = () => {
   useFocusEffect(
     useCallback(() => {
       fetchReports();
+      // console.log("reports", reports);
     }, [])
   );
+
+  useEffect(() => {
+    console.log("Updated reports:", reports);
+    console.log("myArray (snapshot):", JSON.stringify(reports, null, 2));
+    if (reports.length > 0) {
+      console.log("First report object:", reports[0]);
+    }
+
+  }, [reports]);
 
   return (
     <View style={styles.container}>
@@ -77,6 +103,8 @@ const RecordsScreen = () => {
             <Text style={styles.yearText}>2025</Text>
           </TouchableOpacity>
         </View>
+
+
 
         {reports.map((report, index) => (
           <TimelineItem
